@@ -25,9 +25,9 @@
                     "column": {
                       "constraints": {
                         "primaryKey": true,
-                        "primaryKeyName": "ORGANIZATION_PK"
+                        "primaryKeyName": "UCSBORGANIZATION_PK"
                       },
-                      "name": "ORGCODE",
+                      "name": "ORG_CODE",
                       "type": "VARCHAR(255)"
                     }
                   },
