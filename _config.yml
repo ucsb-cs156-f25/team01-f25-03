@@ -23,4 +23,4 @@ repo_name: "TBD"
 repo: ucsb-cs156-f25/team01-f25-03
 owner: ucsb-cs156-f25
 repo_name: team01-f25-03
-pull_requests: [{"author":{"id":"U_kgDOClGZww","is_bot":false,"login":"JoshuaChu2004","name":""},"headRefName":"Joshua-UCSBOrganizationTable","number":44,"title":"Adding UCSBOrganization database table","url":"https://github.com/ucsb-cs156-f25/team01-f25-03/pull/44"},{"author":{"id":"MDQ6VXNlcjg3MjU4Mjc1","is_bot":false,"login":"adamw3455","name":""},"headRefName":"Adam-MenuItemReview-create-db","number":43,"title":"Define entity/repository/migration for MenuItemReview","url":"https://github.com/ucsb-cs156-f25/team01-f25-03/pull/43"}]
+pull_requests: [{"author":{"id":"MDQ6VXNlcjg3MjU4Mjc1","is_bot":false,"login":"adamw3455","name":""},"headRefName":"Adam-MenuItemReview-create-db","number":43,"title":"Define entity/repository/migration for MenuItemReview","url":"https://github.com/ucsb-cs156-f25/team01-f25-03/pull/43"}]
