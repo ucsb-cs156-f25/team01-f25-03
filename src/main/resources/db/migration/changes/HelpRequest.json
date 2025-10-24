@@ -1,0 +1,44 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "HelpRequest-1",
+        "author": "terryzhouqr",
+        "preConditions": [
+          { "onFail": "MARK_RAN" },
+          {
+            "not": [
+              { "tableExists": { "tableName": "HELPREQUEST" } }
+            ]
+          }
+        ],
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "HELPREQUEST",
+              "columns": [
+                {
+                  "column": {
+                    "name": "ID",
+                    "type": "BIGINT",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "primaryKeyName": "HELPREQUEST_PK"
+                    }
+                  }
+                },
+                { "column": { "name": "REQUESTER_EMAIL", "type": "VARCHAR(255)" } },
+                { "column": { "name": "TEAM_ID", "type": "VARCHAR(255)" } },
+                { "column": { "name": "TABLE_OR_BREAKOUT_ROOM","type": "VARCHAR(255)" } },
+                { "column": { "name": "REQUEST_TIME", "type": "TIMESTAMP" } },
+                { "column": { "name": "EXPLANATION", "type": "TEXT" } },
+                { "column": { "name": "SOLVED", "type": "BOOLEAN" } }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
