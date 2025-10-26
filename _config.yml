@@ -23,4 +23,4 @@ repo_name: "TBD"
 repo: ucsb-cs156-f25/team01-f25-03
 owner: ucsb-cs156-f25
 repo_name: team01-f25-03
-pull_requests: [{"author":{"id":"MDQ6VXNlcjU4NzU3Nzgz","is_bot":false,"login":"TOXICXUHUAN","name":""},"headRefName":"Dylan-UCSBDiningCommonsMenuItem","number":45,"title":"DC - create database table","url":"https://github.com/ucsb-cs156-f25/team01-f25-03/pull/45"}]
+pull_requests: [{"author":{"id":"MDQ6VXNlcjgwNjMwMDQx","is_bot":false,"login":"terryZhouqr","name":"terry"},"headRefName":"TZ-helpRequest-create-db","number":46,"title":"Tz help request create db","url":"https://github.com/ucsb-cs156-f25/team01-f25-03/pull/46"},{"author":{"id":"MDQ6VXNlcjU4NzU3Nzgz","is_bot":false,"login":"TOXICXUHUAN","name":""},"headRefName":"Dylan-UCSBDiningCommonsMenuItem","number":45,"title":"DC - create database table","url":"https://github.com/ucsb-cs156-f25/team01-f25-03/pull/45"}]
