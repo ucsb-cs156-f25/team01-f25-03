@@ -1,7 +1,7 @@
 package edu.ucsb.cs156.example.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -105,18 +105,28 @@ public class HelpRequestControllerTests extends ControllerTestCase {
   public void admin_user_can_post_a_new_helprequest() throws Exception {
     LocalDateTime t = LocalDateTime.parse("2025-10-25T21:45:24");
 
-    // This object matches what the controller builds via setters
-    HelpRequest hr =
+    HelpRequest toSave =
         HelpRequest.builder()
             .requesterEmail("testEmail@ucsb.edu")
             .teamId("f25-4pm-3")
             .tableOrBreakoutRoom("Table 3")
             .requestTime(t)
             .explanation("Oauth login error")
-            .solved(false)
+            .solved(true)
             .build();
 
-    when(helpRequestRepository.save(eq(hr))).thenReturn(hr);
+    HelpRequest saved =
+        HelpRequest.builder()
+            .requesterEmail("testEmail@ucsb.edu")
+            .teamId("f25-4pm-3")
+            .tableOrBreakoutRoom("Table 3")
+            .requestTime(t)
+            .explanation("Oauth login error")
+            .solved(true)
+            .build();
+
+    when(helpRequestRepository.save(org.mockito.ArgumentMatchers.any(HelpRequest.class)))
+        .thenReturn(saved);
 
     MvcResult response =
         mockMvc
@@ -127,14 +137,18 @@ public class HelpRequestControllerTests extends ControllerTestCase {
                         + "&tableOrBreakoutRoom=Table 3"
                         + "&requestTime=2025-10-25T21:45:24"
                         + "&explanation=Oauth login error"
-                        + "&solved=false")
+                        + "&solved=true")
                     .with(csrf()))
             .andExpect(status().isOk())
             .andReturn();
 
-    verify(helpRequestRepository, times(1)).save(eq(hr));
-    String expectedJson = mapper.writeValueAsString(hr);
+    var captor = org.mockito.ArgumentCaptor.forClass(HelpRequest.class);
+    verify(helpRequestRepository, times(1)).save(captor.capture());
+    HelpRequest captured = captor.getValue();
+    assertEquals(toSave, captured);
+    String expectedJson = mapper.writeValueAsString(saved);
     String responseString = response.getResponse().getContentAsString();
     assertEquals(expectedJson, responseString);
+    assertTrue(captured.getSolved());
   }
 }
