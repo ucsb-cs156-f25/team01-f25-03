@@ -2,6 +2,7 @@ package edu.ucsb.cs156.example.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,6 +19,8 @@ import edu.ucsb.cs156.example.testconfig.TestConfig;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -150,5 +153,47 @@ public class HelpRequestControllerTests extends ControllerTestCase {
     String responseString = response.getResponse().getContentAsString();
     assertEquals(expectedJson, responseString);
     assertTrue(captured.getSolved());
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void logged_in_user_can_get_helpRequest_by_id_when_exists() throws Exception {
+    LocalDateTime t = LocalDateTime.parse("2025-01-20T14:00:00");
+    HelpRequest hr =
+        HelpRequest.builder()
+            .requesterEmail("find@ucsb.edu")
+            .teamId("f25-4pm-5")
+            .tableOrBreakoutRoom("Breakout 2")
+            .requestTime(t)
+            .explanation("Found it!")
+            .solved(true)
+            .build();
+
+    when(helpRequestRepository.findById(eq(123L))).thenReturn(Optional.of(hr));
+
+    MvcResult response =
+        mockMvc.perform(get("/api/HelpRequest?id=123")).andExpect(status().isOk()).andReturn();
+
+    verify(helpRequestRepository, times(1)).findById(eq(123L));
+    String expectedJson = mapper.writeValueAsString(hr);
+    String responseString = response.getResponse().getContentAsString();
+    assertEquals(expectedJson, responseString);
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void logged_in_user_gets_404_when_helpRequest_not_found() throws Exception {
+    when(helpRequestRepository.findById(eq(123L))).thenReturn(Optional.empty());
+
+    MvcResult response =
+        mockMvc
+            .perform(get("/api/HelpRequest?id=123"))
+            .andExpect(status().isNotFound())
+            .andReturn();
+
+    verify(helpRequestRepository, times(1)).findById(eq(123L));
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("EntityNotFoundException", json.get("type"));
+    assertEquals("HelpRequest with id 123 not found", json.get("message"));
   }
 }
