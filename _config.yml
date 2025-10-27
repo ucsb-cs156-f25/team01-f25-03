@@ -23,4 +23,4 @@ repo_name: "TBD"
 repo: ucsb-cs156-f25/team01-f25-03
 owner: ucsb-cs156-f25
 repo_name: team01-f25-03
-pull_requests: [{"author":{"id":"U_kgDOCM7fCA","is_bot":false,"login":"ChenchangWang1018","name":""},"headRefName":"CW-articles-create-db","number":48,"title":"Add Article entity, repository, and migration","url":"https://github.com/ucsb-cs156-f25/team01-f25-03/pull/48"},{"author":{"id":"MDQ6VXNlcjgwNjMwMDQx","is_bot":false,"login":"terryZhouqr","name":"terry"},"headRefName":"TZ-helpRequest-create-db","number":46,"title":"Tz help request create db","url":"https://github.com/ucsb-cs156-f25/team01-f25-03/pull/46"}]
+pull_requests: [{"author":{"id":"MDQ6VXNlcjgwNjMwMDQx","is_bot":false,"login":"terryZhouqr","name":"terry"},"headRefName":"TZ-helpRequest-create-db","number":46,"title":"Tz help request create db","url":"https://github.com/ucsb-cs156-f25/team01-f25-03/pull/46"}]
