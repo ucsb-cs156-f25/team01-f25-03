@@ -15,12 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** This is a REST controller for UCSBDiningCommonsMenuItems */
-@Tag(name = "UCSBDiningCommonsMenuItems")
+/** This is a REST controller for UCSBDiningCommonsMenuItem */
+@Tag(name = "UCSBDiningCommonsMenuItem")
 @RequestMapping("/api/ucsbdiningcommonsmenuitem")
 @RestController
 @Slf4j
-public class UCSBDiningCommonsMenuItemsController {
+public class UCSBDiningCommonsMenuItemController {
   @Autowired UCSBDiningCommonsMenuItemRepository ucsbDiningCommonsMenuItemRepository;
 
   @Operation(summary = "List all UCSB dining commons menu items")
