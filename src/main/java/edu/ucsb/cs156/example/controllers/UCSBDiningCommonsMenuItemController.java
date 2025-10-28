@@ -1,6 +1,5 @@
 package edu.ucsb.cs156.example.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import edu.ucsb.cs156.example.entities.UCSBDiningCommonsMenuItem;
 import edu.ucsb.cs156.example.repositories.UCSBDiningCommonsMenuItemRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,8 +36,7 @@ public class UCSBDiningCommonsMenuItemController {
   public UCSBDiningCommonsMenuItem postUCSBDiningCommonsMenuItem(
       @Parameter(name = "diningCommonsCode") @RequestParam String diningCommonsCode,
       @Parameter(name = "name") @RequestParam String name,
-      @Parameter(name = "station") @RequestParam String station)
-      throws JsonProcessingException {
+      @Parameter(name = "station") @RequestParam String station) {
 
     UCSBDiningCommonsMenuItem item = new UCSBDiningCommonsMenuItem();
     item.setDiningCommonsCode(diningCommonsCode);
