@@ -1,0 +1,55 @@
+package edu.ucsb.cs156.example.controllers;
+
+import edu.ucsb.cs156.example.entities.Article;
+import edu.ucsb.cs156.example.repositories.ArticleRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import java.time.LocalDateTime;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@Tag(name = "Articles")
+@RequestMapping("/api/articles")
+@RestController
+@Slf4j
+public class ArticlesController extends ApiController {
+
+  @Autowired private ArticleRepository articleRepository;
+
+  @Operation(summary = "List all articles")
+  @PreAuthorize("hasRole('ROLE_USER')")
+  @GetMapping("/all")
+  public Iterable<Article> allArticles() {
+    return articleRepository.findAll();
+  }
+
+  @Operation(summary = "Create a new article")
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PostMapping("/post")
+  public Article postArticle(
+      @Parameter(name = "title") @RequestParam String title,
+      @Parameter(name = "url") @RequestParam String url,
+      @Parameter(name = "explanation") @RequestParam String explanation,
+      @Parameter(name = "email") @RequestParam String email,
+      @Parameter(name = "dateAdded", description = "ISO datetime, e.g. 2025-10-27T13:45:00")
+          @RequestParam("dateAdded")
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          LocalDateTime dateAdded) {
+    Article a = new Article();
+    a.setTitle(title);
+    a.setUrl(url);
+    a.setExplanation(explanation);
+    a.setEmail(email);
+    a.setDateAdded(dateAdded);
+
+    return articleRepository.save(a);
+  }
+}
