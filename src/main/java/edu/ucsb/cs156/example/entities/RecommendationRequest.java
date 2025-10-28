@@ -8,8 +8,8 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "recommendation_requests")
-public class RecommendationRequests {
+@Table(name = "recommendation_request")
+public class RecommendationRequest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
