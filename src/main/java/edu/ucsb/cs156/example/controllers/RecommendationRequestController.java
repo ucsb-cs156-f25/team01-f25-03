@@ -6,7 +6,6 @@ import edu.ucsb.cs156.example.repositories.RecommendationRequestRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,62 +24,61 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class RecommendationRequestController extends ApiController {
 
-    @Autowired
-    RecommendationRequestRepository recommendationRequestRepository;
+  @Autowired RecommendationRequestRepository recommendationRequestRepository;
 
-    /**
-     * Get all recommendation requests
-     *
-     * @return all RecommendationRequest entries as JSON
-     */
-    @Operation(summary = "List all recommendation requests")
-    @PreAuthorize("hasRole('ROLE_USER')")
-    @GetMapping("/all")
-    public Iterable<RecommendationRequest> allRecommendationRequests() {
-        Iterable<RecommendationRequest> requests = recommendationRequestRepository.findAll();
-        return requests;
-    }
+  /**
+   * Get all recommendation requests
+   *
+   * @return all RecommendationRequest entries as JSON
+   */
+  @Operation(summary = "List all recommendation requests")
+  @PreAuthorize("hasRole('ROLE_USER')")
+  @GetMapping("/all")
+  public Iterable<RecommendationRequest> allRecommendationRequests() {
+    Iterable<RecommendationRequest> requests = recommendationRequestRepository.findAll();
+    return requests;
+  }
 
-    /**
-     * Create a new recommendation request
-     *
-     * @param requesterEmail email of the requester
-     * @param professorEmail email of the professor
-     * @param explanation explanation text
-     * @param dateRequested when it was requested
-     * @param dateNeeded when it is needed
-     * @param done boolean status
-     * @return the saved RecommendationRequest object
-     */
-    @Operation(summary = "Create a new recommendation request")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PostMapping("/post")
-    public RecommendationRequest postRecommendationRequest(
-            @Parameter(name = "requesterEmail") @RequestParam String requesterEmail,
-            @Parameter(name = "professorEmail") @RequestParam String professorEmail,
-            @Parameter(name = "explanation") @RequestParam String explanation,
-            @Parameter(name = "dateRequested")
-            @RequestParam("dateRequested")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-                    LocalDateTime dateRequested,
-            @Parameter(name = "dateNeeded")
-            @RequestParam("dateNeeded")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-                    LocalDateTime dateNeeded,
-            @Parameter(name = "done") @RequestParam boolean done
-    ) throws JsonProcessingException {
+  /**
+   * Create a new recommendation request
+   *
+   * @param requesterEmail email of the requester
+   * @param professorEmail email of the professor
+   * @param explanation explanation text
+   * @param dateRequested when it was requested
+   * @param dateNeeded when it is needed
+   * @param done boolean status
+   * @return the saved RecommendationRequest object
+   */
+  @Operation(summary = "Create a new recommendation request")
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PostMapping("/post")
+  public RecommendationRequest postRecommendationRequest(
+      @Parameter(name = "requesterEmail") @RequestParam String requesterEmail,
+      @Parameter(name = "professorEmail") @RequestParam String professorEmail,
+      @Parameter(name = "explanation") @RequestParam String explanation,
+      @Parameter(name = "dateRequested")
+          @RequestParam("dateRequested")
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          LocalDateTime dateRequested,
+      @Parameter(name = "dateNeeded")
+          @RequestParam("dateNeeded")
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          LocalDateTime dateNeeded,
+      @Parameter(name = "done") @RequestParam boolean done)
+      throws JsonProcessingException {
 
-        log.info("Creating RecommendationRequest for requesterEmail={}", requesterEmail);
+    log.info("Creating RecommendationRequest for requesterEmail={}", requesterEmail);
 
-        RecommendationRequest request = new RecommendationRequest();
-        request.setRequesterEmail(requesterEmail);
-        request.setProfessorEmail(professorEmail);
-        request.setExplanation(explanation);
-        request.setDateRequested(dateRequested);
-        request.setDateNeeded(dateNeeded);
-        request.setDone(done);
+    RecommendationRequest request = new RecommendationRequest();
+    request.setRequesterEmail(requesterEmail);
+    request.setProfessorEmail(professorEmail);
+    request.setExplanation(explanation);
+    request.setDateRequested(dateRequested);
+    request.setDateNeeded(dateNeeded);
+    request.setDone(done);
 
-        RecommendationRequest savedRequest = recommendationRequestRepository.save(request);
-        return savedRequest;
-    }
+    RecommendationRequest savedRequest = recommendationRequestRepository.save(request);
+    return savedRequest;
+  }
 }
