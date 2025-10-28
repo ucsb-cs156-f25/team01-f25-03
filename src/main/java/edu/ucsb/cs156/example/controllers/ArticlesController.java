@@ -43,6 +43,7 @@ public class ArticlesController extends ApiController {
           @RequestParam("dateAdded")
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
           LocalDateTime dateAdded) {
+
     Article a = new Article();
     a.setTitle(title);
     a.setUrl(url);
