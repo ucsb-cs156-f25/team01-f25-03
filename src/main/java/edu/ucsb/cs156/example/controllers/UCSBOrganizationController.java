@@ -1,6 +1,7 @@
 package edu.ucsb.cs156.example.controllers;
 
-import edu.ucsb.cs156.example.entities.UCSBDiningCommons;
+import edu.ucsb.cs156.example.entities.UCSBOrganization;
+import edu.ucsb.cs156.example.repositories.UCSBOrganizationRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class UCSBOrganizationController {
 
-  @Autowired UCSBOrganizationRespository ucsbOrganizationRespository;
+  @Autowired UCSBOrganizationRepository ucsbOrganizationRepository;
 
   /**
    * THis method returns a list of all ucsborganizations.
@@ -31,7 +32,7 @@ public class UCSBOrganizationController {
   @PreAuthorize("hasRole('ROLE_USER')")
   @GetMapping("/all")
   public Iterable<UCSBOrganization> allOrganizations() {
-    Iterable<UCSBOrganization> organizations = ucsbOrganizationRespository.findAll();
+    Iterable<UCSBOrganization> organizations = ucsbOrganizationRepository.findAll();
     return organizations;
   }
 
@@ -47,7 +48,7 @@ public class UCSBOrganizationController {
   @Operation(summary = "Create a new organization")
   @PreAuthorize("hasRole('ROLE_ADMIN')")
   @PostMapping("/post")
-  public UCSBDiningCommons postOrganization(
+  public UCSBOrganization postOrganization(
       @Parameter(name = "orgCode") @RequestParam String orgCode,
       @Parameter(name = "orgTranslationShort") @RequestParam String orgTranslationShort,
       @Parameter(name = "orgTranslation") @RequestParam String orgTranslation,
@@ -59,7 +60,7 @@ public class UCSBOrganizationController {
     organization.setOrgTranslation(orgTranslation);
     organization.setInactive(inactive);
 
-    UCSBOrganization savedOrganization = ucsbOrganizationRespository.save(organization);
+    UCSBOrganization savedOrganization = ucsbOrganizationRepository.save(organization);
 
     return savedOrganization;
   }
