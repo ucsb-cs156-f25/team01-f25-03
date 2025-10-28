@@ -1,0 +1,60 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "RecommendationRequests-1",
+        "author": "Tarang",
+        "preConditions": [
+          { "onFail": "MARK_RAN" },
+          {
+            "not": [
+              {
+                "tableExists": {
+                  "tableName": "RECOMMENDATIONREQUESTS"
+                }
+              }
+            ]
+          }
+        ],
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "RECOMMENDATIONREQUESTS",
+              "columns": [
+                {
+                  "column": {
+                    "name": "ID",
+                    "type": "BIGINT",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "primaryKeyName": "RECOMMENDATIONREQUESTS_PK"
+                    }
+                  }
+                },
+                {
+                  "column": { "name": "REQUESTEREMAIL", "type": "VARCHAR(255)" }
+                },
+                {
+                  "column": { "name": "PROFESSOREMAIL", "type": "VARCHAR(255)" }
+                },
+                {
+                  "column": { "name": "EXPLANATION", "type": "VARCHAR(1000)" }
+                },
+                {
+                  "column": { "name": "DATEREQUESTED", "type": "TIMESTAMP" }
+                },
+                {
+                  "column": { "name": "DATENEEDED", "type": "TIMESTAMP" }
+                },
+                {
+                  "column": { "name": "DONE", "type": "BOOLEAN" }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
