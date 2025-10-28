@@ -2,7 +2,7 @@
   "databaseChangeLog": [
     {
       "changeSet": {
-        "id": "RecommendationRequests-1",
+        "id": "RecommendationRequest-1",
         "author": "Tarang",
         "preConditions": [
           { "onFail": "MARK_RAN" },
@@ -10,7 +10,7 @@
             "not": [
               {
                 "tableExists": {
-                  "tableName": "RECOMMENDATIONREQUESTS"
+                  "tableName": "RECOMMENDATIONREQUEST"
                 }
               }
             ]
@@ -28,7 +28,7 @@
                     "autoIncrement": true,
                     "constraints": {
                       "primaryKey": true,
-                      "primaryKeyName": "RECOMMENDATIONREQUESTS_PK"
+                      "primaryKeyName": "RECOMMENDATIONREQUEST_PK"
                     }
                   }
                 },
