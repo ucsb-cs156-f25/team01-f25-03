@@ -21,3 +21,4 @@ public class RecommendationRequests {
     private LocalDateTime dateRequested;
     private LocalDateTime dateNeeded;
     private boolean
+}
