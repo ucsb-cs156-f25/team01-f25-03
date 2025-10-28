@@ -2,6 +2,7 @@ package edu.ucsb.cs156.example.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,6 +19,8 @@ import edu.ucsb.cs156.example.testconfig.TestConfig;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -128,5 +131,52 @@ public class ArticlesControllerTests extends ControllerTestCase {
     assertEquals(LocalDateTime.parse("2025-10-27T13:45:00"), saved.getDateAdded());
 
     assertEquals(mapper.writeValueAsString(returned), response.getResponse().getContentAsString());
+  }
+
+  // --- Authorization: GET by id ---
+  @Test
+  public void logged_out_users_cannot_get_by_id() throws Exception {
+    mockMvc.perform(get("/api/articles").param("id", "7")).andExpect(status().is(403));
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void logged_in_users_can_get_by_id_if_exists() throws Exception {
+    Article a =
+        Article.builder()
+            .title("A1")
+            .url("https://e.com/a1")
+            .explanation("demo")
+            .email("u@ucsb.edu")
+            .dateAdded(LocalDateTime.parse("2025-10-27T13:45:00"))
+            .build();
+
+    when(articleRepository.findById(eq(7L))).thenReturn(Optional.of(a));
+
+    MvcResult res =
+        mockMvc
+            .perform(get("/api/articles").param("id", "7"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    verify(articleRepository, times(1)).findById(7L);
+    assertEquals(mapper.writeValueAsString(a), res.getResponse().getContentAsString());
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void logged_in_users_get_404_if_not_found() throws Exception {
+    when(articleRepository.findById(eq(7L))).thenReturn(Optional.empty());
+
+    MvcResult res =
+        mockMvc
+            .perform(get("/api/articles").param("id", "7"))
+            .andExpect(status().isNotFound())
+            .andReturn();
+
+    verify(articleRepository, times(1)).findById(7L);
+    Map<String, Object> json = responseToJson(res);
+    assertEquals("EntityNotFoundException", json.get("type"));
+    assertEquals("Article with id 7 not found", json.get("message"));
   }
 }
