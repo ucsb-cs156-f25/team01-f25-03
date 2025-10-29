@@ -110,4 +110,39 @@ public class RecommendationRequestControllerTests {
       reset(recommendationRequestRepository);
     }
   }
+
+  // === / GET single record ===
+  @Test
+  @WithMockUser(roles = {"USER"})
+  public void test_getRecommendationRequestById_returns_record_when_exists() throws Exception {
+    RecommendationRequest request = new RecommendationRequest();
+    request.setId(5L);
+    request.setRequesterEmail("bob@ucsb.edu");
+    request.setProfessorEmail("prof@ucsb.edu");
+    request.setExplanation("PhD recommendation");
+
+    when(recommendationRequestRepository.findById(5L)).thenReturn(java.util.Optional.of(request));
+
+    mockMvc
+        .perform(get("/api/recommendationrequest").param("id", "5"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(5))
+        .andExpect(jsonPath("$.requesterEmail").value("bob@ucsb.edu"))
+        .andExpect(jsonPath("$.professorEmail").value("prof@ucsb.edu"))
+        .andExpect(jsonPath("$.explanation").value("PhD recommendation"));
+
+    verify(recommendationRequestRepository, times(1)).findById(5L);
+  }
+
+  @Test
+  @WithMockUser(roles = {"USER"})
+  public void test_getRecommendationRequestById_throws_when_not_found() throws Exception {
+    when(recommendationRequestRepository.findById(999L)).thenReturn(java.util.Optional.empty());
+
+    mockMvc
+        .perform(get("/api/recommendationrequest").param("id", "999"))
+        .andExpect(status().isNotFound());
+
+    verify(recommendationRequestRepository, times(1)).findById(999L);
+  }
 }
