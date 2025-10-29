@@ -23,4 +23,4 @@ repo_name: "TBD"
 repo: ucsb-cs156-f25/team01-f25-03
 owner: ucsb-cs156-f25
 repo_name: team01-f25-03
-pull_requests: [{"author":{"id":"MDQ6VXNlcjg3MjU4Mjc1","is_bot":false,"login":"adamw3455","name":""},"headRefName":"Adam-MenuItemReview-GET-Single","number":70,"title":"Implement GET Single by id API route","url":"https://github.com/ucsb-cs156-f25/team01-f25-03/pull/70"}]
+pull_requests: []
