@@ -13,6 +13,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Slf4j
 public class ArticlesController extends ApiController {
-
   @Autowired private ArticleRepository articleRepository;
 
   @Operation(summary = "List all articles")
@@ -61,5 +62,24 @@ public class ArticlesController extends ApiController {
     return articleRepository
         .findById(id)
         .orElseThrow(() -> new EntityNotFoundException(Article.class, id));
+  }
+
+  @Operation(summary = "Update a single article")
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PutMapping("")
+  public Article updateArticleById(
+      @Parameter(name = "id") @RequestParam Long id, @RequestBody Article incoming) {
+    Article article =
+        articleRepository
+            .findById(id)
+            .orElseThrow(() -> new EntityNotFoundException(Article.class, id));
+
+    article.setTitle(incoming.getTitle());
+    article.setUrl(incoming.getUrl());
+    article.setExplanation(incoming.getExplanation());
+    article.setEmail(incoming.getEmail());
+    article.setDateAdded(incoming.getDateAdded());
+
+    return articleRepository.save(article);
   }
 }
