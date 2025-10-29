@@ -3,12 +3,14 @@ package edu.ucsb.cs156.example.controllers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import edu.ucsb.cs156.example.ControllerTestCase;
@@ -26,6 +28,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -178,5 +181,82 @@ public class ArticlesControllerTests extends ControllerTestCase {
     Map<String, Object> json = responseToJson(res);
     assertEquals("EntityNotFoundException", json.get("type"));
     assertEquals("Article with id 7 not found", json.get("message"));
+  }
+
+  @WithMockUser(roles = {"ADMIN"})
+  @Test
+  public void admin_can_edit_an_existing_article() throws Exception {
+    Article original =
+        Article.builder()
+            .title("Old Title")
+            .url("https://old.com")
+            .explanation("old")
+            .email("old@ucsb.edu")
+            .dateAdded(LocalDateTime.parse("2025-10-29T13:45:00"))
+            .build();
+    when(articleRepository.findById(2L)).thenReturn(Optional.of(original));
+
+    Article updated =
+        Article.builder()
+            .title("New Title")
+            .url("https://new.com")
+            .explanation("new explanation")
+            .email("new@ucsb.edu")
+            .dateAdded(LocalDateTime.parse("2025-10-29T13:45:33"))
+            .build();
+
+    when(articleRepository.save(any(Article.class))).thenReturn(updated);
+
+    String requestBody = mapper.writeValueAsString(updated);
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                put("/api/articles?id=2")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .characterEncoding("utf-8")
+                    .content(requestBody)
+                    .with(csrf()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    ArgumentCaptor<Article> captor = ArgumentCaptor.forClass(Article.class);
+    verify(articleRepository, times(1)).findById(2L);
+    verify(articleRepository, times(1)).save(captor.capture());
+    Article saved = captor.getValue();
+
+    assertEquals("New Title", saved.getTitle());
+    assertEquals("https://new.com", saved.getUrl());
+    assertEquals("new explanation", saved.getExplanation());
+    assertEquals("new@ucsb.edu", saved.getEmail());
+    assertEquals(LocalDateTime.parse("2025-10-29T13:45:33"), saved.getDateAdded());
+
+    assertEquals(mapper.writeValueAsString(updated), response.getResponse().getContentAsString());
+  }
+
+  @WithMockUser(roles = {"ADMIN"})
+  @Test
+  public void admin_cannot_edit_nonexistent_article() throws Exception {
+    when(articleRepository.findById(999L)).thenReturn(Optional.empty());
+
+    Article incoming =
+        Article.builder()
+            .title("x")
+            .url("https://x")
+            .explanation("x")
+            .email("x@ucsb.edu")
+            .dateAdded(LocalDateTime.parse("2025-10-29T00:00:00"))
+            .build();
+
+    mockMvc
+        .perform(
+            put("/api/articles?id=999")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(incoming))
+                .with(csrf()))
+        .andExpect(status().isNotFound());
+
+    verify(articleRepository, times(1)).findById(999L);
+    verify(articleRepository, never()).save(any());
   }
 }
