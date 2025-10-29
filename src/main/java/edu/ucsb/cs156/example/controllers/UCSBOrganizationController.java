@@ -49,7 +49,7 @@ public class UCSBOrganizationController {
     UCSBOrganization organization =
         ucsbOrganizationRepository
             .findById(orgCode)
-            .orElseThrow(() -> new EntityNotFoundException(UCSBOrganization.class, code));
+            .orElseThrow(() -> new EntityNotFoundException(UCSBOrganization.class, orgCode));
 
     return organization;
   }
