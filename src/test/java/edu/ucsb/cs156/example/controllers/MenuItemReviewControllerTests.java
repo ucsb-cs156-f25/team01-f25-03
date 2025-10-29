@@ -1,11 +1,13 @@
 package edu.ucsb.cs156.example.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -81,6 +83,18 @@ public class MenuItemReviewControllerTests extends ControllerTestCase {
                 "/api/menuitemreview?itemId=1&reviewerEmail=abc@xyz.com&stars=1"
                     + "dateReviewed=2025-10-28T00:00:00&comments=terrible"))
         .andExpect(status().is(403));
+  }
+
+  @WithMockUser(roles = {})
+  @Test
+  public void test_cant_delete_without_login() throws Exception {
+    mockMvc.perform(delete("/api/menuitemreview?id=1")).andExpect(status().is(403));
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void test_cant_delete_as_user() throws Exception {
+    mockMvc.perform(delete("/api/menuitemreview?id=1")).andExpect(status().is(403));
   }
 
   // Tests with mocks for database actions
@@ -291,5 +305,54 @@ public class MenuItemReviewControllerTests extends ControllerTestCase {
     verify(menuItemReviewRepository, times(1)).findById(67L);
     Map<String, Object> json = responseToJson(response);
     assertEquals("MenuItemReview with id 67 not found", json.get("message"));
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admin_can_delete_an_existing_review() throws Exception {
+    // arrange
+    LocalDateTime ldt1 = LocalDateTime.parse("2025-10-28T00:00:00");
+    MenuItemReview menuItemReview1 =
+        MenuItemReview.builder()
+            .itemId(Long.valueOf(1))
+            .reviewerEmail("johnsmith@gmail.com")
+            .stars(3)
+            .dateReviewed(ldt1)
+            .comments("mid")
+            .build();
+
+    when(menuItemReviewRepository.findById(eq(15L))).thenReturn(Optional.of(menuItemReview1));
+
+    // act
+    MvcResult response =
+        mockMvc
+            .perform(delete("/api/menuitemreview?id=15").with(csrf()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    // assert
+    verify(menuItemReviewRepository, times(1)).findById(15L);
+    verify(menuItemReviewRepository, times(1)).delete(any());
+
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("MenuItemReview with id 15 deleted", json.get("message"));
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admin_cannot_delete_review_that_does_not_exist() throws Exception {
+    when(menuItemReviewRepository.findById(eq(15L))).thenReturn(Optional.empty());
+
+    // act
+    MvcResult response =
+        mockMvc
+            .perform(delete("/api/menuitemreview?id=15").with(csrf()))
+            .andExpect(status().isNotFound())
+            .andReturn();
+
+    // assert
+    verify(menuItemReviewRepository, times(1)).findById(15L);
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("MenuItemReview with id 15 not found", json.get("message"));
   }
 }
