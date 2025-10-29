@@ -23,4 +23,4 @@ repo_name: "TBD"
 repo: ucsb-cs156-f25/team01-f25-03
 owner: ucsb-cs156-f25
 repo_name: team01-f25-03
-pull_requests: [{"author":{"id":"MDQ6VXNlcjg3MjU4Mjc1","is_bot":false,"login":"adamw3455","name":""},"headRefName":"Adam-MenuItemReview-DELETE","number":74,"title":"Implement DELETE API route","url":"https://github.com/ucsb-cs156-f25/team01-f25-03/pull/74"}]
+pull_requests: []
