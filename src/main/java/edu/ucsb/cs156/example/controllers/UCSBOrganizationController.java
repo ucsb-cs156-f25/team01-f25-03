@@ -37,6 +37,24 @@ public class UCSBOrganizationController {
   }
 
   /**
+   * This method returns a single organization.
+   *
+   * @param orgCode code of the organization
+   * @return a single organization
+   */
+  @Operation(summary = "Get a single organization")
+  @PreAuthorize("hasRole('ROLE_USER')")
+  @GetMapping("")
+  public UCSBOrganization getById(@Parameter(name = "code") @RequestParam String orgCode) {
+    UCSBOrganization organization =
+        ucsbOrganizationRepository
+            .findById(orgCode)
+            .orElseThrow(() -> new EntityNotFoundException(UCSBOrganization.class, code));
+
+    return organization;
+  }
+
+  /**
    * This method creates a new organization. Accessible only to users with the role "ROLE_ADMIN".
    *
    * @param orgCode code of the organization
