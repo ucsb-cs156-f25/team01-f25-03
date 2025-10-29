@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Entity(name = "recommendation_request")
+@Entity(name = "recommendationrequest")
 public class RecommendationRequest {
 
   @Id
