@@ -81,6 +81,36 @@ public class UCSBOrganizationControllerTests extends ControllerTestCase {
     assertEquals(expectedJson, responseString);
   }
 
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void logged_in_user_can_get_by_id() throws Exception {
+    // arrange
+
+    UCSBOrganization organization =
+        UCSBOrganization.builder()
+            .orgCode("123")
+            .orgTranslationShort("123")
+            .orgTranslation("one two three")
+            .inactive(false)
+            .build();
+
+    when(ucsbOrganizationRepository.findById(eq("123"))).thenReturn(Optional.of(organization));
+
+    // act
+    MvcResult response =
+        mockMvc
+            .perform(get("/api/ucsborganization?orgCode=123"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    // assert
+
+    verify(ucsbOrganizationRepository, times(1)).findById(eq("123"));
+    String expectedJson = mapper.writeValueAsString(organization);
+    String responseString = response.getResponse().getContentAsString();
+    assertEquals(expectedJson, responseString);
+  }
+
   @Test
   public void logged_out_users_cannot_post() throws Exception {
     mockMvc.perform(post("/api/ucsborganization/post")).andExpect(status().is(403));
