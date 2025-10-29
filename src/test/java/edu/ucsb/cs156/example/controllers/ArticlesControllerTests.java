@@ -8,6 +8,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -258,5 +259,63 @@ public class ArticlesControllerTests extends ControllerTestCase {
 
     verify(articleRepository, times(1)).findById(999L);
     verify(articleRepository, never()).save(any());
+  }
+
+  // --- Authorization: DELETE /api/articles ---
+  @Test
+  public void logged_out_users_cannot_delete() throws Exception {
+    mockMvc.perform(delete("/api/articles?id=123").with(csrf())).andExpect(status().is(403));
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void regular_users_cannot_delete() throws Exception {
+    mockMvc.perform(delete("/api/articles?id=123").with(csrf())).andExpect(status().is(403));
+  }
+
+  // --- With mocks: DELETE /api/articles (success) ---
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admin_can_delete_existing_article() throws Exception {
+    Article existing =
+        Article.builder()
+            .id(2L)
+            .title("t")
+            .url("https://e.com")
+            .explanation("x")
+            .email("u@ucsb.edu")
+            .dateAdded(LocalDateTime.parse("2025-10-27T13:45:00"))
+            .build();
+
+    when(articleRepository.findById(2L)).thenReturn(Optional.of(existing));
+
+    MvcResult response =
+        mockMvc
+            .perform(delete("/api/articles?id=2").with(csrf()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    verify(articleRepository, times(1)).findById(2L);
+    verify(articleRepository, times(1)).delete(existing);
+
+    assertEquals("record 2 deleted", response.getResponse().getContentAsString());
+  }
+
+  // --- With mocks: DELETE /api/articles (not found) ---
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admin_delete_nonexistent_article_returns_404() throws Exception {
+    when(articleRepository.findById(123L)).thenReturn(Optional.empty());
+
+    MvcResult response =
+        mockMvc
+            .perform(delete("/api/articles?id=123").with(csrf()))
+            .andExpect(status().isNotFound())
+            .andReturn();
+
+    verify(articleRepository, times(1)).findById(123L);
+    verify(articleRepository, never()).delete(any());
+
+    assertEquals("record 123 not found", response.getResponse().getContentAsString());
   }
 }

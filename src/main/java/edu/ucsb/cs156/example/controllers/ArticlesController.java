@@ -10,7 +10,10 @@ import java.time.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -81,5 +84,21 @@ public class ArticlesController extends ApiController {
     article.setDateAdded(incoming.getDateAdded());
 
     return articleRepository.save(article);
+  }
+
+  @Operation(summary = "Delete a single article")
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @DeleteMapping("")
+  public ResponseEntity<String> deleteArticleById(@Parameter(name = "id") @RequestParam Long id) {
+
+    return articleRepository
+        .findById(id)
+        .map(
+            existing -> {
+              articleRepository.delete(existing);
+              return ResponseEntity.ok("record " + id + " deleted");
+            })
+        .orElseGet(
+            () -> ResponseEntity.status(HttpStatus.NOT_FOUND).body("record " + id + " not found"));
   }
 }
