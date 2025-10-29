@@ -19,7 +19,7 @@
         "changes": [
           {
             "createTable": {
-              "tableName": "RECOMMENDATIONREQUESTS",
+              "tableName": "RECOMMENDATIONREQUEST",
               "columns": [
                 {
                   "column": {
@@ -33,19 +33,19 @@
                   }
                 },
                 {
-                  "column": { "name": "REQUESTEREMAIL", "type": "VARCHAR(255)" }
+                  "column": { "name": "REQUESTER_EMAIL", "type": "VARCHAR(255)" }
                 },
                 {
-                  "column": { "name": "PROFESSOREMAIL", "type": "VARCHAR(255)" }
+                  "column": { "name": "PROFESSOR_EMAIL", "type": "VARCHAR(255)" }
                 },
                 {
                   "column": { "name": "EXPLANATION", "type": "VARCHAR(1000)" }
                 },
                 {
-                  "column": { "name": "DATEREQUESTED", "type": "TIMESTAMP" }
+                  "column": { "name": "DATE_REQUESTED", "type": "TIMESTAMP" }
                 },
                 {
-                  "column": { "name": "DATENEEDED", "type": "TIMESTAMP" }
+                  "column": { "name": "DATE_NEEDED", "type": "TIMESTAMP" }
                 },
                 {
                   "column": { "name": "DONE", "type": "BOOLEAN" }

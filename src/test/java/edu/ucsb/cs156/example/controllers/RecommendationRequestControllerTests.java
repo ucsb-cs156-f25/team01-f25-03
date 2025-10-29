@@ -1,36 +1,31 @@
 package edu.ucsb.cs156.example.controllers;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import edu.ucsb.cs156.example.ControllerTestCase;
 import edu.ucsb.cs156.example.entities.RecommendationRequest;
 import edu.ucsb.cs156.example.repositories.RecommendationRequestRepository;
-import edu.ucsb.cs156.example.services.CurrentUserService;
-import edu.ucsb.cs156.example.services.wiremock.WiremockService;
+import edu.ucsb.cs156.example.repositories.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 @WebMvcTest(controllers = RecommendationRequestController.class)
-public class RecommendationRequestControllerTests {
-
-  @Autowired private MockMvc mockMvc;
-
+public class RecommendationRequestControllerTests extends ControllerTestCase {
   @MockBean private RecommendationRequestRepository recommendationRequestRepository;
-
-  @MockBean private WiremockService wiremockService;
-
-  @MockBean private CurrentUserService currentUserService;
+  @MockBean UserRepository userRepository;
 
   // === /all endpoint ===
   @Test
@@ -56,59 +51,44 @@ public class RecommendationRequestControllerTests {
   }
 
   // === /post endpoint ===
+  @WithMockUser(roles = {"ADMIN", "USER"})
   @Test
-  @WithMockUser(roles = {"ADMIN"})
-  public void test_postRecommendationRequest_creates_new_request_with_done_false_and_true()
-      throws Exception {
-    LocalDateTime dateRequested = LocalDateTime.parse("2024-10-10T10:00:00");
-    LocalDateTime dateNeeded = LocalDateTime.parse("2024-11-01T12:00:00");
+  public void an_admin_user_can_post_a_new_recommendation_request() throws Exception {
+    // arrange
 
-    for (boolean done : new boolean[] {false, true}) {
-      RecommendationRequest saved = new RecommendationRequest();
-      saved.setId(done ? 2L : 1L);
-      saved.setRequesterEmail("alice@ucsb.edu");
-      saved.setProfessorEmail("prof@ucsb.edu");
-      saved.setExplanation("Grad school recommendation");
-      saved.setDateRequested(dateRequested);
-      saved.setDateNeeded(dateNeeded);
-      saved.setDone(done);
+    LocalDateTime ldt1 = LocalDateTime.parse("2022-01-03T00:00:00");
+    LocalDateTime ldt2 = LocalDateTime.parse("2022-01-10T00:00:00");
 
-      when(recommendationRequestRepository.save(any(RecommendationRequest.class)))
-          .thenReturn(saved);
+    RecommendationRequest recommendationRequest =
+        RecommendationRequest.builder()
+            .requesterEmail("student1@ucsb.edu")
+            .professorEmail("prof@ucsb.edu")
+            .explanation("PhD recommendation")
+            .dateRequested(ldt1)
+            .dateNeeded(ldt2)
+            .done(true)
+            .build();
 
-      mockMvc
-          .perform(
-              post("/api/recommendationrequest/post")
-                  .param("requesterEmail", "alice@ucsb.edu")
-                  .param("professorEmail", "prof@ucsb.edu")
-                  .param("explanation", "Grad school recommendation")
-                  .param("dateRequested", "2024-10-10T10:00:00")
-                  .param("dateNeeded", "2024-11-01T12:00:00")
-                  .param("done", String.valueOf(done))
-                  .with(csrf())
-                  .contentType(MediaType.APPLICATION_JSON))
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$.requesterEmail").value("alice@ucsb.edu"))
-          .andExpect(jsonPath("$.professorEmail").value("prof@ucsb.edu"))
-          .andExpect(jsonPath("$.explanation").value("Grad school recommendation"))
-          .andExpect(jsonPath("$.dateRequested").value("2024-10-10T10:00:00"))
-          .andExpect(jsonPath("$.dateNeeded").value("2024-11-01T12:00:00"))
-          .andExpect(jsonPath("$.done").value(done));
+    when(recommendationRequestRepository.save(eq(recommendationRequest)))
+        .thenReturn(recommendationRequest);
 
-      ArgumentCaptor<RecommendationRequest> captor =
-          ArgumentCaptor.forClass(RecommendationRequest.class);
-      verify(recommendationRequestRepository, times(1)).save(captor.capture());
+    // act
+    MvcResult response =
+        mockMvc
+            .perform(
+                post("/api/recommendationrequest/post?requesterEmail=student1@ucsb.edu&professorEmail=prof@ucsb.edu&explanation=PhD recommendation&dateRequested=2022-01-03T00:00:00&dateNeeded=2022-01-10T00:00:00&done=true")
+                    .with(csrf()))
+            .andExpect(status().isOk())
+            .andReturn();
 
-      RecommendationRequest captured = captor.getValue();
-      assertThat(captured.getRequesterEmail()).isEqualTo("alice@ucsb.edu");
-      assertThat(captured.getProfessorEmail()).isEqualTo("prof@ucsb.edu");
-      assertThat(captured.getExplanation()).isEqualTo("Grad school recommendation");
-      assertThat(captured.getDateRequested()).isEqualTo(dateRequested);
-      assertThat(captured.getDateNeeded()).isEqualTo(dateNeeded);
-      assertThat(captured.getDone()).isEqualTo(done);
+    when(recommendationRequestRepository.save(eq(recommendationRequest)))
+        .thenReturn(recommendationRequest);
 
-      reset(recommendationRequestRepository);
-    }
+    // assert
+    verify(recommendationRequestRepository, times(1)).save(recommendationRequest);
+    String expectedJson = mapper.writeValueAsString(recommendationRequest);
+    String responseString = response.getResponse().getContentAsString();
+    assertEquals(expectedJson, responseString);
   }
 
   // === / GET single record ===
@@ -144,5 +124,99 @@ public class RecommendationRequestControllerTests {
         .andExpect(status().isNotFound());
 
     verify(recommendationRequestRepository, times(1)).findById(999L);
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admin_can_edit_an_existing_recommendation_request() throws Exception {
+    // arrange
+
+    LocalDateTime ldt1 = LocalDateTime.parse("2022-01-03T00:00:00");
+    LocalDateTime ldt2 = LocalDateTime.parse("2023-01-03T00:00:00");
+    LocalDateTime ldt3 = LocalDateTime.parse("2024-01-03T00:00:00");
+    LocalDateTime ldt4 = LocalDateTime.parse("2025-01-03T00:00:00");
+
+    RecommendationRequest recommendationRequestOrig =
+        RecommendationRequest.builder()
+            .requesterEmail("abc@ucsb.edu")
+            .professorEmail("prof@ucsb.edu")
+            .explanation("Grad school recommendation")
+            .dateRequested(ldt1)
+            .dateNeeded(ldt2)
+            .done(false)
+            .build();
+
+    RecommendationRequest recommendationRequestEdited =
+        RecommendationRequest.builder()
+            .requesterEmail("edf@ucsb.edu")
+            .professorEmail("lol@ucsb.edu")
+            .explanation("whatever")
+            .dateRequested(ldt3)
+            .dateNeeded(ldt4)
+            .done(true)
+            .build();
+
+    String requestBody = mapper.writeValueAsString(recommendationRequestEdited);
+
+    when(recommendationRequestRepository.findById(eq(67L)))
+        .thenReturn(Optional.of(recommendationRequestOrig));
+
+    // act
+    MvcResult response =
+        mockMvc
+            .perform(
+                put("/api/recommendationrequest?id=67")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .characterEncoding("utf-8")
+                    .content(requestBody)
+                    .with(csrf()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    // assert
+    verify(recommendationRequestRepository, times(1)).findById(67L);
+    verify(recommendationRequestRepository, times(1))
+        .save(recommendationRequestEdited); // should be saved with correct user
+    String responseString = response.getResponse().getContentAsString();
+    assertEquals(requestBody, responseString);
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admin_cannot_edit_recommendation_request_that_does_not_exist() throws Exception {
+    // arrange
+
+    LocalDateTime ldt1 = LocalDateTime.parse("2022-01-03T00:00:00");
+
+    RecommendationRequest recommendationRequestEdited =
+        RecommendationRequest.builder()
+            .requesterEmail("abc@ucsb.edu")
+            .professorEmail("prof@ucsb.edu")
+            .explanation("Grad school recommendation")
+            .dateRequested(ldt1)
+            .dateNeeded(ldt1)
+            .done(true)
+            .build();
+
+    String requestBody = mapper.writeValueAsString(recommendationRequestEdited);
+
+    when(recommendationRequestRepository.findById(eq(67L))).thenReturn(Optional.empty());
+
+    // act
+    MvcResult response =
+        mockMvc
+            .perform(
+                put("/api/recommendationrequest?id=67")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .characterEncoding("utf-8")
+                    .content(requestBody)
+                    .with(csrf()))
+            .andExpect(status().isNotFound())
+            .andReturn();
+
+    // assert
+    verify(recommendationRequestRepository, times(1)).findById(67L);
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("RecommendationRequest with id 67 not found", json.get("message"));
   }
 }
