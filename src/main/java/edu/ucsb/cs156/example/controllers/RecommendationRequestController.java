@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -28,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class RecommendationRequestController extends ApiController {
 
-  @Autowired RecommendationRequestRepository recommendationRequestRepository;
+  @Autowired private RecommendationRequestRepository recommendationRequestRepository;
 
   /**
    * Get all recommendation requests
@@ -39,21 +40,10 @@ public class RecommendationRequestController extends ApiController {
   @PreAuthorize("hasRole('ROLE_USER')")
   @GetMapping("/all")
   public Iterable<RecommendationRequest> allRecommendationRequest() {
-    Iterable<RecommendationRequest> requests = recommendationRequestRepository.findAll();
-    return requests;
+    return recommendationRequestRepository.findAll();
   }
 
-  /**
-   * Create a new recommendation request
-   *
-   * @param requesterEmail email of the requester
-   * @param professorEmail email of the professor
-   * @param explanation explanation text
-   * @param dateRequested when it was requested
-   * @param dateNeeded when it is needed
-   * @param done boolean status
-   * @return the saved RecommendationRequest object
-   */
+  /** Create a new recommendation request */
   @Operation(summary = "Create a new recommendation request")
   @PreAuthorize("hasRole('ROLE_ADMIN')")
   @PostMapping("/post")
@@ -82,16 +72,10 @@ public class RecommendationRequestController extends ApiController {
     request.setDateNeeded(dateNeeded);
     request.setDone(done);
 
-    RecommendationRequest savedRequest = recommendationRequestRepository.save(request);
-    return savedRequest;
+    return recommendationRequestRepository.save(request);
   }
 
-  /**
-   * Get a single recommendation request by id
-   *
-   * @param id the id of the recommendation request
-   * @return the matching RecommendationRequest
-   */
+  /** Get a single recommendation request by id */
   @Operation(summary = "Get a single recommendation request by id")
   @PreAuthorize("hasRole('ROLE_USER')")
   @GetMapping("")
@@ -103,6 +87,7 @@ public class RecommendationRequestController extends ApiController {
         .orElseThrow(() -> new EntityNotFoundException(RecommendationRequest.class, id));
   }
 
+  /** Update a single recommendation request by id */
   @Operation(summary = "Update a single recommendation request by id")
   @PreAuthorize("hasRole('ROLE_ADMIN')")
   @PutMapping("")
@@ -123,7 +108,20 @@ public class RecommendationRequestController extends ApiController {
     request.setDone(incoming.getDone());
 
     recommendationRequestRepository.save(request);
-
     return request;
+  }
+
+  /** Delete a RecommendationRequest */
+  @Operation(summary = "Delete a RecommendationRequest")
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @DeleteMapping("")
+  public Object deleteRecommendationRequest(@Parameter(name = "id") @RequestParam Long id) {
+    RecommendationRequest recommendationRequest =
+        recommendationRequestRepository
+            .findById(id)
+            .orElseThrow(() -> new EntityNotFoundException(RecommendationRequest.class, id));
+
+    recommendationRequestRepository.delete(recommendationRequest);
+    return genericMessage("RecommendationRequest with id %s deleted".formatted(id));
   }
 }
