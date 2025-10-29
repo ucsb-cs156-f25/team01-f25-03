@@ -75,6 +75,25 @@ public class HelpRequestControllerTests extends ControllerTestCase {
     mockMvc.perform(put("/api/HelpRequest?id=1")).andExpect(status().is(403));
   }
 
+  @Test
+  public void logged_out_users_cannot_delete() throws Exception {
+    mockMvc
+        .perform(
+            org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(
+                "/api/HelpRequest?id=1"))
+        .andExpect(status().is(403));
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void regular_users_cannot_delete() throws Exception {
+    mockMvc
+        .perform(
+            org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(
+                "/api/HelpRequest?id=1"))
+        .andExpect(status().is(403));
+  }
+
   /* Functional Test */
 
   @WithMockUser(roles = {"USER"})
@@ -301,6 +320,60 @@ public class HelpRequestControllerTests extends ControllerTestCase {
 
     verify(helpRequestRepository, times(1)).findById(eq(123L));
     verify(helpRequestRepository, times(0)).save(org.mockito.ArgumentMatchers.any());
+
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("EntityNotFoundException", json.get("type"));
+    assertEquals("HelpRequest with id 123 not found", json.get("message"));
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admin_can_delete_existing_helpRequest() throws Exception {
+    LocalDateTime t = LocalDateTime.parse("2025-01-20T14:00:00");
+    HelpRequest existing =
+        HelpRequest.builder()
+            .requesterEmail("del@ucsb.edu")
+            .teamId("f25-4pm-9")
+            .tableOrBreakoutRoom("Table 9")
+            .requestTime(t)
+            .explanation("delete me")
+            .solved(false)
+            .build();
+
+    when(helpRequestRepository.findById(eq(123L))).thenReturn(Optional.of(existing));
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(
+                        "/api/HelpRequest?id=123")
+                    .with(csrf()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    verify(helpRequestRepository, times(1)).findById(eq(123L));
+    verify(helpRequestRepository, times(1)).delete(existing);
+
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("HelpRequest with id 123 deleted", json.get("message"));
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admin_tries_to_delete_nonexistent_helpRequest() throws Exception {
+    when(helpRequestRepository.findById(eq(123L))).thenReturn(Optional.empty());
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(
+                        "/api/HelpRequest?id=123")
+                    .with(csrf()))
+            .andExpect(status().isNotFound())
+            .andReturn();
+
+    verify(helpRequestRepository, times(1)).findById(eq(123L));
+    verify(helpRequestRepository, times(0)).delete(org.mockito.ArgumentMatchers.any());
 
     Map<String, Object> json = responseToJson(response);
     assertEquals("EntityNotFoundException", json.get("type"));
