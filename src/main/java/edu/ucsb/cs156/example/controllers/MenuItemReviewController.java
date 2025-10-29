@@ -36,7 +36,6 @@ public class MenuItemReviewController extends ApiController {
   @PreAuthorize("hasRole('ROLE_USER')")
   @PostMapping("/post")
   public MenuItemReview postMenuItemReview(
-      @Parameter(name = "id") @RequestParam Long id,
       @Parameter(name = "itemId") @RequestParam Long itemId,
       @Parameter(name = "reviewerEmail") @RequestParam String reviewerEmail,
       @Parameter(name = "stars") @RequestParam int stars,
@@ -50,7 +49,6 @@ public class MenuItemReviewController extends ApiController {
       @Parameter(name = "comments") @RequestParam String comments) {
 
     MenuItemReview menuItemReview = new MenuItemReview();
-    menuItemReview.setId(id);
     menuItemReview.setItemId(itemId);
     menuItemReview.setReviewerEmail(reviewerEmail);
     menuItemReview.setStars(stars);
