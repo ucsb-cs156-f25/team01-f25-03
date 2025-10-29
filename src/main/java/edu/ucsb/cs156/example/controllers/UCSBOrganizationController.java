@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/ucsborganization")
 @RestController
 @Slf4j
-public class UCSBOrganizationController {
+public class UCSBOrganizationController extends ApiController {
 
   @Autowired UCSBOrganizationRepository ucsbOrganizationRepository;
 
