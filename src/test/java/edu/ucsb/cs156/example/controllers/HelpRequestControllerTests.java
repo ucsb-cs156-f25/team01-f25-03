@@ -1,6 +1,7 @@
 package edu.ucsb.cs156.example.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -9,6 +10,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import edu.ucsb.cs156.example.ControllerTestCase;
@@ -25,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -59,6 +62,36 @@ public class HelpRequestControllerTests extends ControllerTestCase {
   @Test
   public void logged_in_regular_users_cannot_post() throws Exception {
     mockMvc.perform(post("/api/HelpRequest/post")).andExpect(status().is(403));
+  }
+
+  @Test
+  public void logged_out_users_cannot_put() throws Exception {
+    mockMvc.perform(put("/api/HelpRequest?id=1")).andExpect(status().is(403));
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void regular_users_cannot_put() throws Exception {
+    mockMvc.perform(put("/api/HelpRequest?id=1")).andExpect(status().is(403));
+  }
+
+  @Test
+  public void logged_out_users_cannot_delete() throws Exception {
+    mockMvc
+        .perform(
+            org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(
+                "/api/HelpRequest?id=1"))
+        .andExpect(status().is(403));
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void regular_users_cannot_delete() throws Exception {
+    mockMvc
+        .perform(
+            org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(
+                "/api/HelpRequest?id=1"))
+        .andExpect(status().is(403));
   }
 
   /* Functional Test */
@@ -192,6 +225,156 @@ public class HelpRequestControllerTests extends ControllerTestCase {
             .andReturn();
 
     verify(helpRequestRepository, times(1)).findById(eq(123L));
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("EntityNotFoundException", json.get("type"));
+    assertEquals("HelpRequest with id 123 not found", json.get("message"));
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admin_can_edit_existing_helpRequest() throws Exception {
+    LocalDateTime t1 = LocalDateTime.parse("2025-01-20T14:00:00");
+    LocalDateTime t2 = LocalDateTime.parse("2025-02-01T10:30:00");
+
+    HelpRequest existing =
+        HelpRequest.builder()
+            .requesterEmail("old@ucsb.edu")
+            .teamId("f25-4pm-1")
+            .tableOrBreakoutRoom("Table 1")
+            .requestTime(t1)
+            .explanation("old")
+            .solved(false)
+            .build();
+
+    HelpRequest incoming =
+        HelpRequest.builder()
+            .requesterEmail("new@ucsb.edu")
+            .teamId("f25-4pm-2")
+            .tableOrBreakoutRoom("Breakout 7")
+            .requestTime(t2)
+            .explanation("new info")
+            .solved(true)
+            .build();
+
+    String requestBody = mapper.writeValueAsString(incoming);
+    assertNotEquals(true, existing.equals(incoming));
+
+    when(helpRequestRepository.findById(eq(123L))).thenReturn(Optional.of(existing));
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                put("/api/HelpRequest?id=123")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .characterEncoding("utf-8")
+                    .content(requestBody)
+                    .with(csrf()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    var captor = org.mockito.ArgumentCaptor.forClass(HelpRequest.class);
+    verify(helpRequestRepository, times(1)).findById(123L);
+    verify(helpRequestRepository, times(1)).save(captor.capture());
+
+    HelpRequest saved = captor.getValue();
+    assertEquals("new@ucsb.edu", saved.getRequesterEmail());
+    assertEquals("f25-4pm-2", saved.getTeamId());
+    assertEquals("Breakout 7", saved.getTableOrBreakoutRoom());
+    assertEquals(t2, saved.getRequestTime());
+    assertEquals("new info", saved.getExplanation());
+    assertEquals(true, saved.getSolved());
+
+    String expectedJson = mapper.writeValueAsString(saved);
+    String responseString = response.getResponse().getContentAsString();
+    assertEquals(expectedJson, responseString);
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admin_cannot_edit_when_not_found() throws Exception {
+    LocalDateTime t = LocalDateTime.parse("2025-02-01T10:30:00");
+    HelpRequest incoming =
+        HelpRequest.builder()
+            .requesterEmail("new@ucsb.edu")
+            .teamId("f25-4pm-2")
+            .tableOrBreakoutRoom("Breakout 7")
+            .requestTime(t)
+            .explanation("new info")
+            .solved(true)
+            .build();
+
+    String requestBody = mapper.writeValueAsString(incoming);
+
+    when(helpRequestRepository.findById(eq(123L))).thenReturn(Optional.empty());
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                put("/api/HelpRequest?id=123")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .characterEncoding("utf-8")
+                    .content(requestBody)
+                    .with(csrf()))
+            .andExpect(status().isNotFound())
+            .andReturn();
+
+    verify(helpRequestRepository, times(1)).findById(eq(123L));
+    verify(helpRequestRepository, times(0)).save(org.mockito.ArgumentMatchers.any());
+
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("EntityNotFoundException", json.get("type"));
+    assertEquals("HelpRequest with id 123 not found", json.get("message"));
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admin_can_delete_existing_helpRequest() throws Exception {
+    LocalDateTime t = LocalDateTime.parse("2025-01-20T14:00:00");
+    HelpRequest existing =
+        HelpRequest.builder()
+            .requesterEmail("del@ucsb.edu")
+            .teamId("f25-4pm-9")
+            .tableOrBreakoutRoom("Table 9")
+            .requestTime(t)
+            .explanation("delete me")
+            .solved(false)
+            .build();
+
+    when(helpRequestRepository.findById(eq(123L))).thenReturn(Optional.of(existing));
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(
+                        "/api/HelpRequest?id=123")
+                    .with(csrf()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    verify(helpRequestRepository, times(1)).findById(eq(123L));
+    verify(helpRequestRepository, times(1)).delete(existing);
+
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("HelpRequest with id 123 deleted", json.get("message"));
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admin_tries_to_delete_nonexistent_helpRequest() throws Exception {
+    when(helpRequestRepository.findById(eq(123L))).thenReturn(Optional.empty());
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(
+                        "/api/HelpRequest?id=123")
+                    .with(csrf()))
+            .andExpect(status().isNotFound())
+            .andReturn();
+
+    verify(helpRequestRepository, times(1)).findById(eq(123L));
+    verify(helpRequestRepository, times(0)).delete(org.mockito.ArgumentMatchers.any());
+
     Map<String, Object> json = responseToJson(response);
     assertEquals("EntityNotFoundException", json.get("type"));
     assertEquals("HelpRequest with id 123 not found", json.get("message"));
