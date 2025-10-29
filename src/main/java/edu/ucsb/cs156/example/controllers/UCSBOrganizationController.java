@@ -46,7 +46,7 @@ public class UCSBOrganizationController {
   @Operation(summary = "Get a single organization")
   @PreAuthorize("hasRole('ROLE_USER')")
   @GetMapping("")
-  public UCSBOrganization getById(@Parameter(name = "code") @RequestParam String orgCode) {
+  public UCSBOrganization getById(@Parameter(name = "orgCode") @RequestParam String orgCode) {
     UCSBOrganization organization =
         ucsbOrganizationRepository
             .findById(orgCode)
