@@ -23,4 +23,4 @@ repo_name: "TBD"
 repo: ucsb-cs156-f25/team01-f25-03
 owner: ucsb-cs156-f25
 repo_name: team01-f25-03
-pull_requests: [{"author":{"id":"U_kgDOClGZww","is_bot":false,"login":"JoshuaChu2004","name":""},"headRefName":"Joshua-UCSBOrganizationDeleteEndpoint","number":73,"title":"Joshua Organization Delete Endpoint","url":"https://github.com/ucsb-cs156-f25/team01-f25-03/pull/73"},{"author":{"id":"MDQ6VXNlcjg3MjU4Mjc1","is_bot":false,"login":"adamw3455","name":""},"headRefName":"Adam-MenuItemReview-PUT","number":72,"title":"Implement PUT API route","url":"https://github.com/ucsb-cs156-f25/team01-f25-03/pull/72"}]
+pull_requests: [{"author":{"id":"MDQ6VXNlcjg3MjU4Mjc1","is_bot":false,"login":"adamw3455","name":""},"headRefName":"Adam-MenuItemReview-PUT","number":72,"title":"Implement PUT API route","url":"https://github.com/ucsb-cs156-f25/team01-f25-03/pull/72"}]
