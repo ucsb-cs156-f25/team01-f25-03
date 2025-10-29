@@ -13,6 +13,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,16 +22,15 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = &quot;Articles&quot;)
 @RequestMapping(&quot;/api/articles&quot;)
 @RestController
-<span class="fc" id="L23">@Slf4j</span>
-<span class="fc" id="L24">public class ArticlesController extends ApiController {</span>
-
+<span class="fc" id="L25">@Slf4j</span>
+<span class="fc" id="L26">public class ArticlesController extends ApiController {</span>
   @Autowired private ArticleRepository articleRepository;
 
   @Operation(summary = &quot;List all articles&quot;)
   @PreAuthorize(&quot;hasRole('ROLE_USER')&quot;)
   @GetMapping(&quot;/all&quot;)
   public Iterable&lt;Article&gt; allArticles() {
-<span class="fc" id="L32">    return articleRepository.findAll();</span>
+<span class="fc" id="L33">    return articleRepository.findAll();</span>
   }
 
   @Operation(summary = &quot;Create a new article&quot;)
@@ -44,23 +45,42 @@ import org.springframework.web.bind.annotation.RestController;
           @RequestParam(&quot;dateAdded&quot;)
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
           LocalDateTime dateAdded) {
-<span class="fc" id="L47">    Article a = new Article();</span>
-<span class="fc" id="L48">    a.setTitle(title);</span>
-<span class="fc" id="L49">    a.setUrl(url);</span>
-<span class="fc" id="L50">    a.setExplanation(explanation);</span>
-<span class="fc" id="L51">    a.setEmail(email);</span>
-<span class="fc" id="L52">    a.setDateAdded(dateAdded);</span>
+<span class="fc" id="L48">    Article a = new Article();</span>
+<span class="fc" id="L49">    a.setTitle(title);</span>
+<span class="fc" id="L50">    a.setUrl(url);</span>
+<span class="fc" id="L51">    a.setExplanation(explanation);</span>
+<span class="fc" id="L52">    a.setEmail(email);</span>
+<span class="fc" id="L53">    a.setDateAdded(dateAdded);</span>
 
-<span class="fc" id="L54">    return articleRepository.save(a);</span>
+<span class="fc" id="L55">    return articleRepository.save(a);</span>
   }
 
   @Operation(summary = &quot;Get a single article&quot;)
   @PreAuthorize(&quot;hasRole('ROLE_USER')&quot;)
   @GetMapping(&quot;&quot;)
   public Article getById(@Parameter(name = &quot;id&quot;) @RequestParam Long id) {
-<span class="fc" id="L61">    return articleRepository</span>
-<span class="fc" id="L62">        .findById(id)</span>
-<span class="fc" id="L63">        .orElseThrow(() -&gt; new EntityNotFoundException(Article.class, id));</span>
+<span class="fc" id="L62">    return articleRepository</span>
+<span class="fc" id="L63">        .findById(id)</span>
+<span class="fc" id="L64">        .orElseThrow(() -&gt; new EntityNotFoundException(Article.class, id));</span>
+  }
+
+  @Operation(summary = &quot;Update a single article&quot;)
+  @PreAuthorize(&quot;hasRole('ROLE_ADMIN')&quot;)
+  @PutMapping(&quot;&quot;)
+  public Article updateArticleById(
+      @Parameter(name = &quot;id&quot;) @RequestParam Long id, @RequestBody Article incoming) {
+<span class="fc" id="L72">    Article article =</span>
+        articleRepository
+<span class="fc" id="L74">            .findById(id)</span>
+<span class="fc" id="L75">            .orElseThrow(() -&gt; new EntityNotFoundException(Article.class, id));</span>
+
+<span class="fc" id="L77">    article.setTitle(incoming.getTitle());</span>
+<span class="fc" id="L78">    article.setUrl(incoming.getUrl());</span>
+<span class="fc" id="L79">    article.setExplanation(incoming.getExplanation());</span>
+<span class="fc" id="L80">    article.setEmail(incoming.getEmail());</span>
+<span class="fc" id="L81">    article.setDateAdded(incoming.getDateAdded());</span>
+
+<span class="fc" id="L83">    return articleRepository.save(article);</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
