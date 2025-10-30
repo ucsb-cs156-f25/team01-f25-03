@@ -23,4 +23,4 @@ repo_name: "TBD"
 repo: ucsb-cs156-f25/team01-f25-03
 owner: ucsb-cs156-f25
 repo_name: team01-f25-03
-pull_requests: []
+pull_requests: [{"author":{"id":"MDQ6VXNlcjgwNjMwMDQx","is_bot":false,"login":"terryZhouqr","name":"terry"},"headRefName":"TZ-helpRequest-create-db","number":77,"title":"Fix: change explanation column to VARCHAR(255)","url":"https://github.com/ucsb-cs156-f25/team01-f25-03/pull/77"}]
